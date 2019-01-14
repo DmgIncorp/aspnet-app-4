@@ -1,12 +1,17 @@
-FROM microsoft/aspnetcore-build:2.0 
-WORKDIR /app
+FROM microsoft/dotnet:2.2-sdk AS builder
 
-# Copy csproj and restore as distinct layers
-COPY *.csproj ./
-RUN dotnet restore
+WORKDIR /src
+COPY ./src ../src
+RUN dotnet restore *.sln
 
-# Copy everything else and build
-COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet test -c release
 
-ENTRYPOINT ["dotnet", "out/aspnetapp.dll"]
+WORKDIR /src/Web
+RUN dotnet publish -c release
+
+FROM microsoft/dotnet:2.2-aspnetcore-runtime
+COPY --from=builder src/Web/bin/release/netcoreapp2.2/publish app
+WORKDIR app
+ENV ASPNETCORE_URLS http://*:80
+EXPOSE 80
+ENTRYPOINT ["dotnet", "aspnetapp.dll"]

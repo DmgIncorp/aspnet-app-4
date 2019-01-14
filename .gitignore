@@ -2,3 +2,6 @@
 bin
 obj
 *.un~
+.vs/
+*.user
+bower_components/
